@@ -16,6 +16,7 @@ public class SceneManager {
     public static void changeScene(int newScene) {
         SceneEnum sceneEnum = SceneEnum.fromValue(newScene);
         currentScene = sceneEnum.getScene();
+        currentScene.init();
     }
 
 }
