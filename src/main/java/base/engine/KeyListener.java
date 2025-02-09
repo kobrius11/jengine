@@ -1,4 +1,4 @@
-package com.base.engine;
+package base.engine;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -8,7 +8,7 @@ public class KeyListener {
     private boolean[] keys = new boolean[350];
 
     private KeyListener() {
-        
+
     }
 
     public static KeyListener get() {

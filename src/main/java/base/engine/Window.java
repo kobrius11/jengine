@@ -1,28 +1,45 @@
-package com.base.engine;
+package base.engine;
 
-import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
-
+import base.utils.Time;
 import java.nio.*;
-import java.util.Random;
+
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.*;
-import static org.lwjgl.system.MemoryUtil.*;
 
 
 public class Window {
-    private long window;
-    private int width, height;
-    private String title;
+    private static Window instance;
+    private static long window;
+    private static int width, height;
+    private static String title;
+    public float red, green, blue, alpha = 1.0f;
 
-    public Window(int width, int height, String title) {
-        this.width = width;
-        this.height = height;
-        this.title = title;
+    private Window() {
+        this.red = 1.0f;
+        this.green = 1.0f;
+        this.blue = 1.0f;
+        this.alpha = 1.0f;
+    }
+
+    public static Window get() {
+        if (Window.instance == null) {
+            Window.instance = new Window();
+        }
+        return instance;
+    }
+
+    public static void setTitle(String title) {
+        Window.title = title;
+    }
+
+    public static void setSize(int width, int height) {
+        Window.width = width;
+        Window.height = height;
     }
 
     private void init() {
@@ -56,8 +73,8 @@ public class Window {
             GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
             // Center the window
-            glfwSetWindowPos(window, (vidmode.width() - pWidth.get(0)) / 2,
-                    (vidmode.height() - pHeight.get(0)) / 2);
+            // glfwSetWindowPos(window, (vidmode.width() - pWidth.get(0)) / 2,
+            //         (vidmode.height() - pHeight.get(0)) / 2);
         } // the stack frame is popped automatically
 
         // Make the OpenGL context current
@@ -69,19 +86,21 @@ public class Window {
         glfwShowWindow(window);
         GL.createCapabilities();
 
+        SceneManager.get();
+        SceneManager.changeScene(0);
     }
 
     private void createWindow() {
-        window = glfwCreateWindow(this.width, this.height, this.title, 0L, 0L);
+        window = glfwCreateWindow(width, height, title, MemoryUtil.NULL, MemoryUtil.NULL);
         if (window == MemoryUtil.NULL)
             throw new RuntimeException("Failed to create the GLFW window");
     }
 
+
     private void loop() {
-        float red = 1.0f;
-        float green = 1.0f;
-        float blue = 1.0f;
-        float alpha = 1.0f;
+        float beginTime = Time.getTime();
+        float endTime;
+        float dt = -1.0f;
 
 
         while (!glfwWindowShouldClose(window)) {
@@ -89,36 +108,16 @@ public class Window {
             glClearColor(red, green, blue, alpha);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-            if (KeyListener.isKeyDown(GLFW_KEY_UP)) {
-                green = 0.0f;
-                blue = 0.0f;
-            } else if (KeyListener.isKeyDown(GLFW_KEY_DOWN)) {
-                green = 1.0f;
-                blue = 1.0f;
-            }
-
-            if (MouseListener.isDragging()) {
-                red = 0.0f;
-            } else {
-                red = 1.0f;
-            }
-
-            if (MouseListener.isMouseButtonDown(GLFW_MOUSE_BUTTON_1)
-                    | MouseListener.isMouseButtonDown(GLFW_MOUSE_BUTTON_2)
-                    | MouseListener.isMouseButtonDown(GLFW_MOUSE_BUTTON_3)
-                    | MouseListener.isMouseButtonDown(GLFW_MOUSE_BUTTON_4)
-                    | MouseListener.isMouseButtonDown(GLFW_MOUSE_BUTTON_5)
-                    | MouseListener.isMouseButtonDown(GLFW_MOUSE_BUTTON_6)
-                    | MouseListener.isMouseButtonDown(GLFW_MOUSE_BUTTON_7)
-                    | MouseListener.isMouseButtonDown(GLFW_MOUSE_BUTTON_8)) {
-                red = 0.0f;
-            } else {
-                red = 1.0f;
+            if (dt >= 0) {
+                SceneManager.currentScene.update(dt);;
             }
 
             glfwSwapBuffers(window);
             glfwPollEvents();
+
+            endTime = Time.getTime();
+            dt = endTime - beginTime;
+            beginTime = endTime;
         }
     }
 

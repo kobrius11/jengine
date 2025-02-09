@@ -1,4 +1,4 @@
-package com.base.engine;
+package base.engine;
 
 import static org.lwjgl.glfw.GLFW.*;
 
